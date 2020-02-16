@@ -1,4 +1,5 @@
 from tkinter import *
+from PIL import Image, ImageTk
 
 # create root window
 root = Tk()
@@ -20,26 +21,39 @@ class Window(Frame):
         self.pack(fill=BOTH, expand=1)
 
         menu = Menu(self.master)
-        self.master.config(menu = menu)
+        self.master.config(menu=menu)
 
-        file = Menu(menu)
+        file = Menu(menu, tearoff=0)
+        file.add_command(label="Save")
         file.add_command(label="Exit", command=self.client_exit)
         menu.add_cascade(label="File", menu=file)
 
-        edit = Menu(menu)
+        edit = Menu(menu, tearoff=0)
         edit.add_command(label="Undo")
+        edit.add_command(label="Redo")
         menu.add_cascade(label="Edit", menu=edit)
 
+        themes = Menu(menu, tearoff=0)
+        themes.add_command(label="White")
+        themes.add_command(label="Grey")
+        themes.add_command(label="Black")
+        menu.add_cascade(label="Themes", menu=themes)
 
-    def show_img(self):
-        load = Image.open()
+        toolbar = Menu(self)
+
+        toolbar_menu = Menu(toolbar)
+        toolbar.add_cascade(label="Test", menu=toolbar_menu)
+
+        txt = Text(self, height=150, width=200)
+        txt.pack(side=TOP, fill=BOTH)
+        txt.focus()
 
     def client_exit(self):
         exit()
 
 
 # set window size
-root.geometry("480x320")
+root.geometry("1280x720")
 
 # create instance of root window
 app = Window(root)
