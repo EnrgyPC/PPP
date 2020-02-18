@@ -10,7 +10,7 @@ class PadPad(tk.Tk):
         self.FONT_SIZE = 12
         self.FONT = "Liberation Sans"
         self.WINDOW_TITLE = "PPP - PyPadPad"
-        self.VERSION_NUMBER = "0.1"
+        self.VERSION_NUMBER = "0.1.1"
 
         self.BG_COLOR = "lightgrey"
         self.FG_COLOR = "black"
@@ -24,18 +24,22 @@ class PadPad(tk.Tk):
         ]
 
         self.IMAGES = {
-            "new_file": "new.png"
+            "new_file": "new.png",
+            "open_file": "open.png",
+            "save_file": "save.png"
         }
 
-        # doesn't work
-        self.geometry = "1024x768"
-
         self.open_file = ""
-        self.title(self.WINDOW_TITLE + " " + self.VERSION_NUMBER + self.open_file)
+        self.title(self.WINDOW_TITLE + " - " + self.VERSION_NUMBER + self.open_file)
 
         # bindings
 
         self.bind("<Button-3>", self.show_context_menu)
+        self.bind("<Control-s>", self.save_file_dialog)
+        self.bind("<Control-o>", self.open_file_dialog)
+        self.bind("<Control-n>", self.create_new_dialog)
+        self.bind("<Control-z>", self.undo)
+        self.bind("<Control-y>", self.redo)
 
         # popup menu
 
@@ -59,8 +63,8 @@ class PadPad(tk.Tk):
         self.menu.add_cascade(label="File", menu=self.file)
 
         self.edit = tk.Menu(self.menu, tearoff=0, bg=self.BG_COLOR, fg=self.FG_COLOR)
-        self.edit.add_command(label="Undo")
-        self.edit.add_command(label="Redo")
+        self.edit.add_command(label="Undo", command=self.undo, accelerator="Ctrl+Z")
+        self.edit.add_command(label="Redo", command=self.redo, accelerator="Ctrl+Y")
         self.menu.add_cascade(label="Edit", menu=self.edit)
 
         self.settings = tk.Menu(self.menu, tearoff=0, bg=self.BG_COLOR, fg=self.FG_COLOR)
@@ -69,24 +73,45 @@ class PadPad(tk.Tk):
         self.menu.add_cascade(label="Settings", menu=self.settings)
 
         self.about = tk.Menu(self.menu, tearoff=0, bg=self.BG_COLOR, fg=self.FG_COLOR)
-        self.about.add_command(label="Version: " + self.VERSION_NUMBER, command=self.visit_repo)
+        self.about.add_command(label="Version: " + self.VERSION_NUMBER, command=visit_repo)
         self.menu.add_cascade(label="About", menu=self.about)
 
         # toolbar
 
         self.toolbar = tk.Frame(self, bd=1, relief="raised", bg=self.BG_COLOR)
+
         self.new_file_img = Image.open(self.IMAGES.get("new_file"))
-        self.nf_img = ImageTk.PhotoImage(self.new_file_img, size=16)
+        self.nf_img = ImageTk.PhotoImage(self.new_file_img)
         self.new_file_button = tk.Button(self.toolbar, image=self.nf_img, relief="flat", bg=self.BG_COLOR,
                                          command=self.create_new_dialog)
         self.new_file_button.pack(side="left", padx=2, pady=2)
+
+        self.open_file_img = Image.open(self.IMAGES.get("open_file"))
+        self.of_img = ImageTk.PhotoImage(self.open_file_img)
+        self.open_file_button = tk.Button(self.toolbar, image=self.of_img, relief="flat", bg=self.BG_COLOR,
+                                          command=self.open_file_dialog)
+        self.open_file_button.pack(side="left", padx=2, pady=2)
+
+        self.save_file_img = Image.open(self.IMAGES.get("save_file"))
+        self.sf_img = ImageTk.PhotoImage(self.save_file_img)
+        self.save_file_button = tk.Button(self.toolbar, image=self.sf_img, relief="flat", bg=self.BG_COLOR,
+                                          command=self.save_file_dialog)
+        self.save_file_button.pack(side="left", padx=2, pady=2)
+
         self.toolbar.pack(side="top", fill="x")
 
         # textbox
 
-        self.txt = scrolledtext.ScrolledText(self, font=(self.FONT, self.FONT_SIZE), padx=5, pady=5)
+        self.txt = scrolledtext.ScrolledText(self, font=(self.FONT, self.FONT_SIZE), padx=2, pady=2)
+        self.txt.config(undo=1, autoseparators=1, maxundo=-1)
         self.txt.pack(fill="both", expand=1)
         self.txt.focus()
+
+    def undo(self, event=None):
+        self.txt.edit_undo()
+
+    def redo(self, event=None):
+        self.txt.edit_redo()
 
     def create_new_dialog(self, event=None):
         save_work_box = tk.messagebox.askyesno("New File", "Save current work before creating new file?")
@@ -99,10 +124,10 @@ class PadPad(tk.Tk):
             file_save.write(text_to_save)
             file_save.close()
             self.txt.delete(1.0, tk.END)
-            self.title(" - ".join([self.WINDOW_TITLE, "Untitled"]))
+            self.title(" - ".join([self.WINDOW_TITLE, self.VERSION_NUMBER, "Untitled"]))
         else:
             self.txt.delete(1.0, tk.END)
-            self.title(" - ".join([self.WINDOW_TITLE, "Untitled"]))
+            self.title(" - ".join([self.WINDOW_TITLE, self.VERSION_NUMBER, "Untitled"]))
 
     def open_file_dialog(self, event=None):
         file_to_open = filedialog.askopenfilename(title="Open file from...", filetypes=self.F_TYPES,
@@ -138,8 +163,9 @@ class PadPad(tk.Tk):
     def close_context_menu(self, pos):
         self.context_menu.unpost()
 
-    def visit_repo(self, event=None):
-        webbrowser.open("https://github.com/EnrgyPC/PPP", new=1, autoraise=True)
+
+def visit_repo():
+    webbrowser.open("https://github.com/EnrgyPC/PPP", new=1, autoraise=True)
 
 
 def client_exit():

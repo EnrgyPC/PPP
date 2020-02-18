@@ -1,0 +1,8 @@
+0.1.1:
+- added this changelog.txt
+- added more toolbar buttons
+- implemented undo and redo (might not fully work as expected)
+- added keyboard shortcuts
+
+0.1:
+- basic setup
