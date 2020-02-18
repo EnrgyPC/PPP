@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import scrolledtext, filedialog, messagebox
 from PIL import Image, ImageTk
+import webbrowser
 
 
 class PadPad(tk.Tk):
@@ -9,6 +10,7 @@ class PadPad(tk.Tk):
         self.FONT_SIZE = 12
         self.FONT = "Liberation Sans"
         self.WINDOW_TITLE = "PPP - PyPadPad"
+        self.VERSION_NUMBER = "0.1"
 
         self.BG_COLOR = "lightgrey"
         self.FG_COLOR = "black"
@@ -29,7 +31,7 @@ class PadPad(tk.Tk):
         self.geometry = "1024x768"
 
         self.open_file = ""
-        self.title(self.WINDOW_TITLE + self.open_file)
+        self.title(self.WINDOW_TITLE + " " + self.VERSION_NUMBER + self.open_file)
 
         # bindings
 
@@ -65,6 +67,10 @@ class PadPad(tk.Tk):
         self.settings.add_command(label="Themes")
         self.settings.add_command(label="Preferences")
         self.menu.add_cascade(label="Settings", menu=self.settings)
+
+        self.about = tk.Menu(self.menu, tearoff=0, bg=self.BG_COLOR, fg=self.FG_COLOR)
+        self.about.add_command(label="Version: " + self.VERSION_NUMBER, command=self.visit_repo)
+        self.menu.add_cascade(label="About", menu=self.about)
 
         # toolbar
 
@@ -131,6 +137,9 @@ class PadPad(tk.Tk):
 
     def close_context_menu(self, pos):
         self.context_menu.unpost()
+
+    def visit_repo(self, event=None):
+        webbrowser.open("https://github.com/EnrgyPC/PPP", new=1, autoraise=True)
 
 
 def client_exit():

@@ -1,4 +1,8 @@
 # PPP
 PPP - PyPadPad (text editor)
 
-My own, minimalistic text editor PadPad is now being ported to Python by following various online tutorials.
+Version: 0.1
+
+My own, minimalistic text editor PadPad is now being ported to
+Python by following various online tutorials.
+
