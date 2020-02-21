@@ -10,7 +10,7 @@ class PadPad(tk.Tk):
         self.FONT_SIZE = 12
         self.FONT = "Liberation Sans"
         self.WINDOW_TITLE = "PPP - PyPadPad"
-        self.VERSION_NUMBER = "0.1.1"
+        self.VERSION_NUMBER = "0.1.2"
 
         self.BG_COLOR = "lightgrey"
         self.FG_COLOR = "black"
@@ -38,8 +38,9 @@ class PadPad(tk.Tk):
         self.bind("<Control-s>", self.save_file_dialog)
         self.bind("<Control-o>", self.open_file_dialog)
         self.bind("<Control-n>", self.create_new_dialog)
-        self.bind("<Control-z>", self.undo)
-        self.bind("<Control-y>", self.redo)
+        self.bind("<Control-S>", self.save_file_dialog)
+        self.bind("<Control-O>", self.open_file_dialog)
+        self.bind("<Control-N>", self.create_new_dialog)
 
         # popup menu
 
@@ -72,6 +73,10 @@ class PadPad(tk.Tk):
         self.settings.add_command(label="Preferences")
         self.menu.add_cascade(label="Settings", menu=self.settings)
 
+        self.help = tk.Menu(self.menu, tearoff=0, bg=self.BG_COLOR, fg=self.FG_COLOR)
+        self.help.add_command(label="Shortcuts", command=lambda: self.show_shortcut_window())
+        self.menu.add_cascade(label="Help", menu=self.help)
+
         self.about = tk.Menu(self.menu, tearoff=0, bg=self.BG_COLOR, fg=self.FG_COLOR)
         self.about.add_command(label="Version: " + self.VERSION_NUMBER, command=visit_repo)
         self.menu.add_cascade(label="About", menu=self.about)
@@ -102,16 +107,83 @@ class PadPad(tk.Tk):
 
         # textbox
 
-        self.txt = scrolledtext.ScrolledText(self, font=(self.FONT, self.FONT_SIZE), padx=2, pady=2)
+        self.txt = scrolledtext.ScrolledText(self, font=(self.FONT, self.FONT_SIZE), padx=5, pady=5)
         self.txt.config(undo=1, autoseparators=1, maxundo=-1)
         self.txt.pack(fill="both", expand=1)
         self.txt.focus()
 
+        # textbox bindings
+
+        self.txt.bind("<Tab>", self.make_space)
+        self.txt.bind("<Control-a>", self.select_all)
+        self.txt.bind("<Control-z>", self.undo)
+        self.txt.bind("<Control-y>", self.redo)
+        self.txt.bind("<Control-A>", self.select_all)
+        self.txt.bind("<Control-Z>", self.undo)
+        self.txt.bind("<Control-Y>", self.redo)
+
+    def show_shortcut_window(self, event=None):
+
+        # shortcut window
+
+        shortcut_window = tk.Toplevel(self, bg=self.BG_COLOR)
+        shortcut_window.title("Shortcuts")
+        shortcut_window.geometry("250x350")
+        shortcut_window.resizable(False, False)
+
+        # shortcuts
+
+        general_bindings = {
+            "Right Click": "Show Context Menu",
+            "Control + S": "Save File",
+            "Control + O": "Open File",
+            "Control + N": "New File",
+        }
+
+        textbox_bindings = {
+            "Tab": "Make Space",
+            "Control + A": "Select All",
+            "Control + Z": "Undo",
+            "Control + Y": "Redo",
+        }
+
+        general_shortcut_frame = tk.LabelFrame(shortcut_window, text="General", padx=5, pady=5)
+        general_shortcut_frame.pack(fill="x", expand=1)
+
+        general_shortcut_box = tk.Listbox(general_shortcut_frame, bg=self.BG_COLOR,
+                                          bd=2, height=7)
+        for binding, desc in zip(general_bindings.keys(), general_bindings.values()):
+            general_shortcut_box.insert(tk.END, binding + " - " + desc)
+
+        general_shortcut_box.pack(fill="x", expand=1)
+
+        textbox_shortcut_frame = tk.LabelFrame(shortcut_window, text="Text Editor", padx=5, pady=5)
+        textbox_shortcut_frame.pack(fill="x", expand=1)
+
+        textbox_shortcut_box = tk.Listbox(textbox_shortcut_frame, bg=self.BG_COLOR,
+                                          bd=2, height=7)
+        for binding, desc in zip(textbox_bindings.keys(), textbox_bindings.values()):
+            textbox_shortcut_box.insert(tk.END, binding + " - " + desc)
+
+        textbox_shortcut_box.pack(fill="x", expand=1)
+
     def undo(self, event=None):
         self.txt.edit_undo()
+        return "break"
 
     def redo(self, event=None):
         self.txt.edit_redo()
+        return "break"
+
+    def make_space(self, event=None):
+        self.txt.insert(tk.INSERT, "    ")
+        return "break"
+
+    def select_all(self, event):
+        self.txt.tag_add(tk.SEL, "1.0", tk.END)
+        self.txt.mark_set(tk.INSERT, "1.0")
+        self.txt.see(tk.INSERT)
+        return "break"
 
     def create_new_dialog(self, event=None):
         save_work_box = tk.messagebox.askyesno("New File", "Save current work before creating new file?")
@@ -174,4 +246,5 @@ def client_exit():
 
 if __name__ == '__main__':
     text_editor = PadPad()
+    text_editor.geometry("1280x720")
     text_editor.mainloop()
