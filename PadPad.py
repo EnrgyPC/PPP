@@ -45,7 +45,7 @@ class PadPad(tk.Tk):
         # popup menu
 
         self.context_menu = tk.Menu(self, tearoff=0, bg=self.BG_COLOR, fg=self.FG_COLOR)
-        self.context_menu.add_command(label="Copy")
+        self.context_menu.add_command(label="Copy", command=self.copy)
         self.context_menu.add_command(label="Cut")
         self.context_menu.add_command(label="Paste")
         self.context_menu.bind("<Leave>", self.close_context_menu)
@@ -121,6 +121,12 @@ class PadPad(tk.Tk):
         self.txt.bind("<Control-A>", self.select_all)
         self.txt.bind("<Control-Z>", self.undo)
         self.txt.bind("<Control-Y>", self.redo)
+        self.txt.bind("<Control-c>", self.copy)
+        self.txt.bind("<Control-C>", self.copy)
+        self.txt.bind("<Control-x>", self.cut)
+        self.txt.bind("<Control-X>", self.cut)
+        self.txt.bind("<Control-v>", self.paste)
+        self.txt.bind("<Control-V>", self.paste)
 
     def show_shortcut_window(self, event=None):
 
@@ -137,7 +143,7 @@ class PadPad(tk.Tk):
             "Right Click": "Show Context Menu",
             "Control + S": "Save File",
             "Control + O": "Open File",
-            "Control + N": "New File",
+            "Control + N": "New File"
         }
 
         textbox_bindings = {
@@ -145,6 +151,9 @@ class PadPad(tk.Tk):
             "Control + A": "Select All",
             "Control + Z": "Undo",
             "Control + Y": "Redo",
+            "Control + C": "Copy",
+            "Control + X": "Cut",
+            "Control + V": "Paste"
         }
 
         general_shortcut_frame = tk.LabelFrame(shortcut_window, text="General", padx=5, pady=5)
@@ -167,12 +176,49 @@ class PadPad(tk.Tk):
 
         textbox_shortcut_box.pack(fill="x", expand=1)
 
+    def copy(self, event=None):
+        text_to_copy = self.txt.selection_get()
+
+        self.txt.clipboard_clear()
+        self.txt.clipboard_append(text_to_copy)
+
+        return "break"
+
+    def cut(self, event=None):
+        text_to_cut = self.txt.selection_get()
+
+        self.txt.clipboard_clear()
+        self.txt.clipboard_append(text_to_cut)
+        self.txt.delete(tk.INSERT, tk.END)
+
+        global is_cut
+        is_cut = True
+        return "break"
+
+    def paste(self, event=None):
+        try:
+            text_to_insert = self.txt.clipboard_get()
+            self.txt.insert(tk.INSERT, text_to_insert)
+        except tk.TclError:
+            pass
+
+        if is_cut is True:
+            self.txt.clipboard_clear()
+
+        return "break"
+
     def undo(self, event=None):
-        self.txt.edit_undo()
+        try:
+            self.txt.edit_undo()
+        except tk.TclError:
+            pass
         return "break"
 
     def redo(self, event=None):
-        self.txt.edit_redo()
+        try:
+            self.txt.edit_redo()
+        except tk.TclError:
+            pass
         return "break"
 
     def make_space(self, event=None):
