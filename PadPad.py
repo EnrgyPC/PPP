@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import scrolledtext, filedialog, messagebox
+from tkinter.font import Font
 from PIL import Image, ImageTk
 import webbrowser
 
@@ -7,10 +8,11 @@ import webbrowser
 class PadPad(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.FONT_SIZE = 12
+
         self.FONT = "Liberation Sans"
+        self.FONT_SIZE = 12
         self.WINDOW_TITLE = "PPP - PyPadPad"
-        self.VERSION_NUMBER = "0.1.2"
+        self.VERSION_NUMBER = "0.2"
 
         self.BG_COLOR = "lightgrey"
         self.FG_COLOR = "black"
@@ -46,8 +48,8 @@ class PadPad(tk.Tk):
 
         self.context_menu = tk.Menu(self, tearoff=0, bg=self.BG_COLOR, fg=self.FG_COLOR)
         self.context_menu.add_command(label="Copy", command=self.copy)
-        self.context_menu.add_command(label="Cut")
-        self.context_menu.add_command(label="Paste")
+        self.context_menu.add_command(label="Cut", command=self.cut)
+        self.context_menu.add_command(label="Paste", command=self.paste)
         self.context_menu.bind("<Leave>", self.close_context_menu)
 
         # menus
@@ -70,7 +72,7 @@ class PadPad(tk.Tk):
 
         self.settings = tk.Menu(self.menu, tearoff=0, bg=self.BG_COLOR, fg=self.FG_COLOR)
         self.settings.add_command(label="Themes")
-        self.settings.add_command(label="Preferences")
+        self.settings.add_command(label="Preferences", command=self.show_preferences)
         self.menu.add_cascade(label="Settings", menu=self.settings)
 
         self.help = tk.Menu(self.menu, tearoff=0, bg=self.BG_COLOR, fg=self.FG_COLOR)
@@ -107,8 +109,8 @@ class PadPad(tk.Tk):
 
         # textbox
 
-        self.txt = scrolledtext.ScrolledText(self, font=(self.FONT, self.FONT_SIZE), padx=5, pady=5)
-        self.txt.config(undo=1, autoseparators=1, maxundo=-1)
+        self.txt = scrolledtext.ScrolledText(self, padx=5, pady=5)
+        self.txt.config(undo=1, autoseparators=1, maxundo=-1, wrap="word", font=(self.FONT, self.FONT_SIZE))
         self.txt.pack(fill="both", expand=1)
         self.txt.focus()
 
@@ -134,7 +136,7 @@ class PadPad(tk.Tk):
 
         shortcut_window = tk.Toplevel(self, bg=self.BG_COLOR)
         shortcut_window.title("Shortcuts")
-        shortcut_window.geometry("250x350")
+        shortcut_window.geometry("275x375")
         shortcut_window.resizable(False, False)
 
         # shortcuts
@@ -156,40 +158,128 @@ class PadPad(tk.Tk):
             "Control + V": "Paste"
         }
 
-        general_shortcut_frame = tk.LabelFrame(shortcut_window, text="General", padx=5, pady=5)
+        main_shortcut_frame = tk.Frame(shortcut_window, padx=10, pady=10, bg=self.BG_COLOR)
+        main_shortcut_frame.pack(fill="x", expand=1)
+
+        general_shortcut_frame = tk.LabelFrame(main_shortcut_frame, text="General", padx=5, pady=5, bg=self.BG_COLOR)
         general_shortcut_frame.pack(fill="x", expand=1)
 
         general_shortcut_box = tk.Listbox(general_shortcut_frame, bg=self.BG_COLOR,
-                                          bd=2, height=7)
+                                          bd=2, height=8)
         for binding, desc in zip(general_bindings.keys(), general_bindings.values()):
             general_shortcut_box.insert(tk.END, binding + " - " + desc)
 
         general_shortcut_box.pack(fill="x", expand=1)
 
-        textbox_shortcut_frame = tk.LabelFrame(shortcut_window, text="Text Editor", padx=5, pady=5)
+        textbox_shortcut_frame = tk.LabelFrame(main_shortcut_frame, text="Text Editor", padx=5, pady=5,
+                                               bg=self.BG_COLOR)
         textbox_shortcut_frame.pack(fill="x", expand=1)
 
         textbox_shortcut_box = tk.Listbox(textbox_shortcut_frame, bg=self.BG_COLOR,
-                                          bd=2, height=7)
+                                          bd=2, height=8)
         for binding, desc in zip(textbox_bindings.keys(), textbox_bindings.values()):
             textbox_shortcut_box.insert(tk.END, binding + " - " + desc)
 
         textbox_shortcut_box.pack(fill="x", expand=1)
 
+    def show_preferences(self, event=None):
+
+        # preferences window
+
+        preferences_window = tk.Toplevel(self, bg=self.BG_COLOR)
+        preferences_window.title("Preferences")
+        preferences_window.geometry("800x600")
+        preferences_window.resizable(False, False)
+
+        # frames
+
+        def raise_frame(frame):
+            frame.tkraise()
+
+        general_settings_frame = tk.Frame(preferences_window, padx=5, pady=5, bg=self.BG_COLOR)
+        font_settings_frame = tk.Frame(preferences_window, padx=5, pady=5, bg=self.BG_COLOR)
+
+        for s_frame in (general_settings_frame, font_settings_frame):
+            s_frame.grid(row=0, column=1, sticky="nsew")
+
+        options_list_frame = tk.LabelFrame(preferences_window, text="Options",
+                                           width=20, height=20, bg=self.BG_COLOR)
+
+        options_list_frame.grid(row=0, column=0, sticky="nw", padx=5, pady=5)
+
+        options_list_box = tk.Listbox(options_list_frame, bg=self.BG_COLOR, bd=2,
+                                      height=20, width=20)
+
+        options_list_box.grid(row=0, column=0, padx=5, pady=5, sticky="nw")
+
+        selected_option = tk.IntVar()
+
+        general_o_button = tk.Radiobutton(options_list_box, text="General", variable=selected_option, value=1,
+                                          width=15, indicatoron=0, padx=2, pady=2,
+                                          command=lambda: raise_frame(general_settings_frame))
+
+        general_o_button.grid(row=0, column=0)
+
+        font_o_button = tk.Radiobutton(options_list_box, text="Font", variable=selected_option, value=2,
+                                       width=15, indicatoron=0, padx=2, pady=2,
+                                       command=lambda: raise_frame(font_settings_frame))
+
+        font_o_button.grid(row=1, column=0)
+
+        raise_frame(general_settings_frame)
+
+        # apply
+
+        apply_button = tk.Button(preferences_window, text="Apply", bg=self.BG_COLOR,
+                                 command=lambda: self.apply_settings())
+
+        apply_button.grid(row=5, column=2, padx=500, pady=430, sticky="s")
+
+        # general settings
+
+        # font settings
+
+        label = tk.Label(font_settings_frame, text="Font Size", bg=self.BG_COLOR)
+        label.grid(row=0, column=1, sticky="w")
+
+        global font_size_scale
+        font_size_scale = tk.Scale(font_settings_frame, orient="vertical", from_=8, to=100,
+                                   bg=self.BG_COLOR)
+
+        font_size_scale.grid(row=1, column=1, sticky="w")
+
+        font_size_scale.set(self.FONT_SIZE)
+
+    def apply_settings(self):
+        self.change_font_size()
+
+    def change_font_size(self):
+        new_font_size = font_size_scale.get()
+        self.FONT_SIZE = new_font_size
+        self.txt.configure(font=(self.FONT, self.FONT_SIZE))
+
     def copy(self, event=None):
-        text_to_copy = self.txt.selection_get()
+        try:
+            text_to_copy = self.txt.selection_get()
 
-        self.txt.clipboard_clear()
-        self.txt.clipboard_append(text_to_copy)
+            self.txt.clipboard_clear()
+            self.txt.clipboard_append(text_to_copy)
+        except tk.TclError:
+            pass
 
+        global is_cut
+        is_cut = False
         return "break"
 
     def cut(self, event=None):
-        text_to_cut = self.txt.selection_get()
+        try:
+            text_to_cut = self.txt.selection_get()
 
-        self.txt.clipboard_clear()
-        self.txt.clipboard_append(text_to_cut)
-        self.txt.delete(tk.INSERT, tk.END)
+            self.txt.clipboard_clear()
+            self.txt.clipboard_append(text_to_cut)
+            self.txt.delete(tk.INSERT, tk.END)
+        except tk.TclError:
+            pass
 
         global is_cut
         is_cut = True
@@ -225,7 +315,7 @@ class PadPad(tk.Tk):
         self.txt.insert(tk.INSERT, "    ")
         return "break"
 
-    def select_all(self, event):
+    def select_all(self, event=None):
         self.txt.tag_add(tk.SEL, "1.0", tk.END)
         self.txt.mark_set(tk.INSERT, "1.0")
         self.txt.see(tk.INSERT)
