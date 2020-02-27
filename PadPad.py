@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import scrolledtext, filedialog, messagebox
-from tkinter.font import Font
 from PIL import Image, ImageTk
 import webbrowser
 
@@ -12,18 +11,23 @@ class PadPad(tk.Tk):
         self.FONT = "Liberation Sans"
         self.FONT_SIZE = 12
         self.WINDOW_TITLE = "PPP - PyPadPad"
-        self.VERSION_NUMBER = "0.2"
+        self.VERSION_NUMBER = "0.2.1"
 
-        self.BG_COLOR = "lightgrey"
-        self.FG_COLOR = "black"
+        self.BG_COLORS = ["white", "lightgrey", "grey", "black"]
 
-        self.F_TYPES = (("Text file", "*.txt"), ("All files", "*.*"))
+        self.FG_COLORS = ["gray7", "black", "mint cream", "white"]
 
-        self.THEMES = [
+        self.BG_COLOR = self.BG_COLORS[0]
+        self.FG_COLOR = self.FG_COLORS[0]
+
+        self.THEMES = (
             "White",
+            "Lightgrey",
             "Grey",
             "Black"
-        ]
+        )
+
+        self.F_TYPES = (("Text file", "*.txt"), ("All files", "*.*"))
 
         self.IMAGES = {
             "new_file": "new.png",
@@ -47,9 +51,9 @@ class PadPad(tk.Tk):
         # popup menu
 
         self.context_menu = tk.Menu(self, tearoff=0, bg=self.BG_COLOR, fg=self.FG_COLOR)
-        self.context_menu.add_command(label="Copy", command=self.copy)
-        self.context_menu.add_command(label="Cut", command=self.cut)
-        self.context_menu.add_command(label="Paste", command=self.paste)
+        self.context_menu.add_command(label="Copy", command=self.copy, accelerator="Ctrl+C")
+        self.context_menu.add_command(label="Cut", command=self.cut, accelerator="Ctrl+X")
+        self.context_menu.add_command(label="Paste", command=self.paste, accelerator="Ctrl+V")
         self.context_menu.bind("<Leave>", self.close_context_menu)
 
         # menus
@@ -71,7 +75,7 @@ class PadPad(tk.Tk):
         self.menu.add_cascade(label="Edit", menu=self.edit)
 
         self.settings = tk.Menu(self.menu, tearoff=0, bg=self.BG_COLOR, fg=self.FG_COLOR)
-        self.settings.add_command(label="Themes")
+        self.settings.add_command(label="Themes", command=self.show_themes)
         self.settings.add_command(label="Preferences", command=self.show_preferences)
         self.menu.add_cascade(label="Settings", menu=self.settings)
 
@@ -109,7 +113,7 @@ class PadPad(tk.Tk):
 
         # textbox
 
-        self.txt = scrolledtext.ScrolledText(self, padx=5, pady=5)
+        self.txt = scrolledtext.ScrolledText(self, padx=5, pady=5, bg=self.BG_COLOR, fg=self.FG_COLOR)
         self.txt.config(undo=1, autoseparators=1, maxundo=-1, wrap="word", font=(self.FONT, self.FONT_SIZE))
         self.txt.pack(fill="both", expand=1)
         self.txt.focus()
@@ -129,6 +133,146 @@ class PadPad(tk.Tk):
         self.txt.bind("<Control-X>", self.cut)
         self.txt.bind("<Control-v>", self.paste)
         self.txt.bind("<Control-V>", self.paste)
+
+    def show_themes(self, event=None):
+
+        # themes window
+
+        themes_window = tk.Toplevel(self, bg=self.BG_COLOR)
+        themes_window.title("Themes")
+        themes_window.geometry("400x300")
+        themes_window.resizable(False, False)
+
+        themes_frame = tk.LabelFrame(themes_window, text="Choose a theme:", bg=self.BG_COLOR)
+        themes_frame.pack(pady=5, padx=5, side="top")
+
+        # theme listbox
+
+        theme_box = tk.Listbox(themes_frame, bg=self.BG_COLOR)
+        theme_box.pack(padx=5, pady=5, side="top")
+
+        white_button = tk.Button(theme_box, text=self.THEMES[0], width=15,
+                                 bg=self.BG_COLOR, fg=self.FG_COLOR,
+                                 command=lambda: self.change_theme(self.BG_COLORS[0], self.FG_COLORS[0]))
+
+        white_button.pack(fill="x", padx=5, pady=3)
+
+        lightgrey_button = tk.Button(theme_box, text=self.THEMES[1], width=15,
+                                     bg=self.BG_COLOR, fg=self.FG_COLOR,
+                                     command=lambda: self.change_theme(self.BG_COLORS[1], self.FG_COLORS[1]))
+
+        lightgrey_button.pack(fill="x", padx=5, pady=3)
+
+        grey_button = tk.Button(theme_box, text=self.THEMES[2], width=15,
+                                bg=self.BG_COLOR, fg=self.FG_COLOR,
+                                command=lambda: self.change_theme(self.BG_COLORS[2], self.FG_COLORS[2]))
+
+        grey_button.pack(fill="x", padx=5, pady=3)
+
+        black_button = tk.Button(theme_box, text=self.THEMES[3], width=15,
+                                 bg=self.BG_COLOR, fg=self.FG_COLOR,
+                                 command=lambda: self.change_theme(self.BG_COLORS[3], self.FG_COLORS[3]))
+
+        black_button.pack(fill="x", padx=5, pady=3)
+
+    # TODO: themes don't work yet. fix them
+
+    def change_theme(self, bg, fg):
+        self.BG_COLOR = bg
+        self.FG_COLOR = fg
+        text_editor.configure(bg=bg)
+
+    def show_preferences(self, event=None):
+
+        # preferences window
+
+        preferences_window = tk.Toplevel(self, bg=self.BG_COLOR)
+        preferences_window.title("Preferences")
+        preferences_window.geometry("800x600")
+        preferences_window.resizable(False, False)
+
+        # frames
+
+        def raise_frame(frame):
+            frame.tkraise()
+
+        general_settings_frame = tk.Frame(preferences_window, padx=5, pady=5, bg=self.BG_COLOR)
+        font_settings_frame = tk.Frame(preferences_window, padx=5, pady=5, bg=self.BG_COLOR)
+
+        for s_frame in (general_settings_frame, font_settings_frame):
+            s_frame.grid(row=0, column=1, sticky="nsew")
+
+        options_list_frame = tk.LabelFrame(preferences_window, text="Options",
+                                           width=20, height=20, bg=self.BG_COLOR)
+
+        options_list_frame.grid(row=0, column=0, sticky="nw", padx=5, pady=5)
+
+        options_list_box = tk.Listbox(options_list_frame, bg=self.BG_COLOR, bd=2,
+                                      height=20, width=20)
+
+        options_list_box.grid(row=0, column=0, sticky="nw", padx=5, pady=5)
+
+        selected_option = tk.IntVar()
+
+        general_o_button = tk.Radiobutton(options_list_box, text="General", variable=selected_option, value=1,
+                                          width=15, indicatoron=0, padx=2, pady=2,
+                                          command=lambda: raise_frame(general_settings_frame))
+
+        general_o_button.grid(row=0, column=0)
+
+        font_o_button = tk.Radiobutton(options_list_box, text="Font", variable=selected_option, value=2,
+                                       width=15, indicatoron=0, padx=2, pady=2,
+                                       command=lambda: raise_frame(font_settings_frame))
+
+        font_o_button.grid(row=1, column=0)
+
+        raise_frame(general_settings_frame)
+
+        # button frame
+
+        button_frame = tk.Frame(preferences_window, bg=self.BG_COLOR, width=50, height=50)
+        button_frame.grid(row=1, column=2, sticky="es", pady=430, padx=410)
+
+        # confirm
+
+        confirm_button = tk.Button(button_frame, text="Confirm", bg=self.BG_COLOR,
+                                   command=lambda: self.confirm_settings(preferences_window))
+
+        confirm_button.grid(row=0, column=0, sticky="s", padx=2)
+
+        # apply
+
+        apply_button = tk.Button(button_frame, text="Apply", bg=self.BG_COLOR,
+                                 command=lambda: self.apply_settings())
+
+        apply_button.grid(row=0, column=1, sticky="s", padx=2)
+
+        # general settings
+
+        # font settings
+
+        label = tk.Label(font_settings_frame, text="Font Size", bg=self.BG_COLOR)
+        label.grid(row=0, column=1, sticky="w")
+
+        global font_size_scale
+        font_size_scale = tk.Scale(font_settings_frame, orient="vertical", from_=8, to=100,
+                                   bg=self.BG_COLOR)
+
+        font_size_scale.grid(row=1, column=1, sticky="w")
+
+        font_size_scale.set(self.FONT_SIZE)
+
+    def apply_settings(self):
+        self.change_font_size()
+
+    def confirm_settings(self, pref_window):
+        self.change_font_size()
+        pref_window.destroy()
+
+    def change_font_size(self):
+        new_font_size = font_size_scale.get()
+        self.FONT_SIZE = new_font_size
+        self.txt.configure(font=(self.FONT, self.FONT_SIZE))
 
     def show_shortcut_window(self, event=None):
 
@@ -181,82 +325,6 @@ class PadPad(tk.Tk):
             textbox_shortcut_box.insert(tk.END, binding + " - " + desc)
 
         textbox_shortcut_box.pack(fill="x", expand=1)
-
-    def show_preferences(self, event=None):
-
-        # preferences window
-
-        preferences_window = tk.Toplevel(self, bg=self.BG_COLOR)
-        preferences_window.title("Preferences")
-        preferences_window.geometry("800x600")
-        preferences_window.resizable(False, False)
-
-        # frames
-
-        def raise_frame(frame):
-            frame.tkraise()
-
-        general_settings_frame = tk.Frame(preferences_window, padx=5, pady=5, bg=self.BG_COLOR)
-        font_settings_frame = tk.Frame(preferences_window, padx=5, pady=5, bg=self.BG_COLOR)
-
-        for s_frame in (general_settings_frame, font_settings_frame):
-            s_frame.grid(row=0, column=1, sticky="nsew")
-
-        options_list_frame = tk.LabelFrame(preferences_window, text="Options",
-                                           width=20, height=20, bg=self.BG_COLOR)
-
-        options_list_frame.grid(row=0, column=0, sticky="nw", padx=5, pady=5)
-
-        options_list_box = tk.Listbox(options_list_frame, bg=self.BG_COLOR, bd=2,
-                                      height=20, width=20)
-
-        options_list_box.grid(row=0, column=0, padx=5, pady=5, sticky="nw")
-
-        selected_option = tk.IntVar()
-
-        general_o_button = tk.Radiobutton(options_list_box, text="General", variable=selected_option, value=1,
-                                          width=15, indicatoron=0, padx=2, pady=2,
-                                          command=lambda: raise_frame(general_settings_frame))
-
-        general_o_button.grid(row=0, column=0)
-
-        font_o_button = tk.Radiobutton(options_list_box, text="Font", variable=selected_option, value=2,
-                                       width=15, indicatoron=0, padx=2, pady=2,
-                                       command=lambda: raise_frame(font_settings_frame))
-
-        font_o_button.grid(row=1, column=0)
-
-        raise_frame(general_settings_frame)
-
-        # apply
-
-        apply_button = tk.Button(preferences_window, text="Apply", bg=self.BG_COLOR,
-                                 command=lambda: self.apply_settings())
-
-        apply_button.grid(row=5, column=2, padx=500, pady=430, sticky="s")
-
-        # general settings
-
-        # font settings
-
-        label = tk.Label(font_settings_frame, text="Font Size", bg=self.BG_COLOR)
-        label.grid(row=0, column=1, sticky="w")
-
-        global font_size_scale
-        font_size_scale = tk.Scale(font_settings_frame, orient="vertical", from_=8, to=100,
-                                   bg=self.BG_COLOR)
-
-        font_size_scale.grid(row=1, column=1, sticky="w")
-
-        font_size_scale.set(self.FONT_SIZE)
-
-    def apply_settings(self):
-        self.change_font_size()
-
-    def change_font_size(self):
-        new_font_size = font_size_scale.get()
-        self.FONT_SIZE = new_font_size
-        self.txt.configure(font=(self.FONT, self.FONT_SIZE))
 
     def copy(self, event=None):
         try:
